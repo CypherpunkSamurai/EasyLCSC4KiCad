@@ -8,9 +8,9 @@ import argparse
 import json
 import logging
 import sys
-from typing import Literal
 
 from easylcsc4kicad import __version__
+from easylcsc4kicad.download import download_component
 from easylcsc4kicad.models import Component, SearchResult
 from easylcsc4kicad.search import (
     get_by_lcsc_id,
@@ -188,6 +188,47 @@ def cmd_get(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_download(args: argparse.Namespace) -> int:
+    """Handle download command."""
+    # Parse models argument
+    models = args.models if args.models else ["STEP"]
+    if models == []:
+        models = []  # --models with no args means no 3D models
+
+    success_count = 0
+    fail_count = 0
+
+    for component_id in args.component_ids:
+        result = download_component(
+            component_id=component_id,
+            output_dir=args.output,
+            footprint_lib=args.footprint_lib,
+            symbol_lib=args.symbol_lib,
+            model_dir=args.model_dir,
+            model_base_variable=args.model_base_variable,
+            models=models,
+            create_footprint_flag=args.footprint,
+            create_symbol_flag=args.symbol,
+            skip_existing=args.skip_existing,
+        )
+
+        if result["success"]:
+            success_count += 1
+            print(f"✓ {component_id}")
+            if result["footprint"]:
+                print(f"  Footprint: {result['footprint']}")
+            if result["symbol"]:
+                print(f"  Symbol: {result['symbol']}")
+            if result["datasheet"]:
+                print(f"  Datasheet: {result['datasheet']}")
+        else:
+            fail_count += 1
+            print(f"✗ {component_id}: {result.get('error', 'Unknown error')}")
+
+    print(f"\nDownloaded: {success_count}, Failed: {fail_count}")
+    return 0 if fail_count == 0 else 1
+
+
 def create_parser() -> argparse.ArgumentParser:
     """Create argument parser."""
     parser = argparse.ArgumentParser(
@@ -276,6 +317,74 @@ Examples:
         help="Output as JSON",
     )
 
+    # Download command
+    download_parser = subparsers.add_parser(
+        "download",
+        help="Download KiCad footprint, symbol, and 3D model",
+        description="Download component files from LCSC/EasyEDA",
+    )
+    download_parser.add_argument(
+        "component_ids",
+        metavar="LCSC_ID",
+        nargs="+",
+        help="LCSC part numbers (e.g., C1337258)",
+    )
+    download_parser.add_argument(
+        "-o",
+        "--output",
+        default="easylcsc_lib",
+        help="Output directory (default: easylcsc_lib)",
+    )
+    download_parser.add_argument(
+        "--no-footprint",
+        dest="footprint",
+        action="store_false",
+        help="Skip footprint generation",
+    )
+    download_parser.add_argument(
+        "--no-symbol",
+        dest="symbol",
+        action="store_false",
+        help="Skip symbol generation",
+    )
+    download_parser.add_argument(
+        "--models",
+        nargs="*",
+        choices=["STEP", "WRL"],
+        default=["STEP"],
+        help="3D model formats (default: STEP). Use --models alone for none",
+    )
+    download_parser.add_argument(
+        "--footprint-lib",
+        dest="footprint_lib",
+        default="footprint",
+        help="Footprint library name (default: footprint)",
+    )
+    download_parser.add_argument(
+        "--symbol-lib",
+        dest="symbol_lib",
+        default=None,
+        help="Symbol library name (default: component name)",
+    )
+    download_parser.add_argument(
+        "--model-dir",
+        dest="model_dir",
+        default="packages3d",
+        help="3D model directory (default: packages3d)",
+    )
+    download_parser.add_argument(
+        "--model-base-variable",
+        dest="model_base_variable",
+        default="",
+        help="KiCad path variable for 3D models",
+    )
+    download_parser.add_argument(
+        "--skip-existing",
+        dest="skip_existing",
+        action="store_true",
+        help="Skip already existing files",
+    )
+
     return parser
 
 
@@ -293,6 +402,8 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_search(args)
     elif args.command == "get":
         return cmd_get(args)
+    elif args.command == "download":
+        return cmd_download(args)
     else:
         parser.print_help()
         return 0
