@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 WRL_HEADER = """#VRML V2.0 utf8
 #created by EasyLCSC4KiCAD
-#for more info see https://github.com/rakesh/EasyLCSC4KiCAD
+#for more info see https://github.com/cypherpunksamurai/easylcsc4kicadz
 """
 
 
