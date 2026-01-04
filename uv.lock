@@ -105,6 +105,7 @@ name = "easylcsc4kicad"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "kicadmodtree" },
     { name = "requests" },
 ]
 
@@ -114,7 +115,10 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "requests", specifier = ">=2.28" }]
+requires-dist = [
+    { name = "kicadmodtree", specifier = ">=1.1.2" },
+    { name = "requests", specifier = ">=2.28" },
+]
 
 [package.metadata.requires-dev]
 dev = [{ name = "kicadmodtree", specifier = ">=1.1.2" }]
