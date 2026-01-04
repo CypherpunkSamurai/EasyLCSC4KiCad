@@ -7,7 +7,7 @@ from LCSC and EasyEDA databases.
 
 from easylcsc4kicad.client import EasyEDAClient
 from easylcsc4kicad.models import Component, Footprint, SearchResult, Symbol
-from easylcsc4kicad.search import get_by_lcsc_id, get_by_uuid, search
+from easylcsc4kicad.search import get_by_lcsc_id, search
 
 __version__ = "0.1.0"
 __all__ = [
@@ -17,6 +17,5 @@ __all__ = [
     "Footprint",
     "SearchResult",
     "search",
-    "get_by_uuid",
     "get_by_lcsc_id",
 ]

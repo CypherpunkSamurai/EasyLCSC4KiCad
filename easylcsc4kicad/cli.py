@@ -14,7 +14,6 @@ from easylcsc4kicad.download import download_component
 from easylcsc4kicad.models import Component, SearchResult
 from easylcsc4kicad.search import (
     get_by_lcsc_id,
-    get_by_uuid,
     search,
     search_3d_models,
     search_footprints,
@@ -167,12 +166,14 @@ def cmd_get(args: argparse.Namespace) -> int:
     """Handle get command."""
     identifier = args.identifier
 
-    # Determine if it's a UUID or LCSC ID
-    # UUIDs are typically 32 hex chars, LCSC IDs start with 'C' followed by digits
-    if identifier.startswith("C") and identifier[1:].isdigit():
-        component = get_by_lcsc_id(identifier)
-    else:
-        component = get_by_uuid(identifier)
+    # Validate LCSC ID format
+    # LCSC IDs start with 'C' followed by digits
+    if not (identifier.startswith("C") and identifier[1:].isdigit()):
+        print(f"Invalid LCSC ID: {identifier}")
+        print("The 'get' command only supports LCSC component IDs (e.g. C12345)")
+        return 1
+
+    component = get_by_lcsc_id(identifier)
 
     if component is None:
         print(f"Component not found: {identifier}")
@@ -241,7 +242,6 @@ Examples:
   easylcsc4kicad search "USB Type-C" --source lcsc --json
   easylcsc4kicad search 0603 --type footprint
   easylcsc4kicad get C1337258
-  easylcsc4kicad get 0819f05c4eef4c71ace90d822a990e87
 """,
     )
 
@@ -304,12 +304,12 @@ Examples:
     # Get command
     get_parser = subparsers.add_parser(
         "get",
-        help="Get component by UUID or LCSC ID",
-        description="Retrieve component details by UUID or LCSC part number",
+        help="Get component by LCSC ID",
+        description="Retrieve component details by LCSC part number",
     )
     get_parser.add_argument(
         "identifier",
-        help="Component UUID or LCSC part number (e.g., C1337258)",
+        help="LCSC part number (e.g., C1337258)",
     )
     get_parser.add_argument(
         "--json",

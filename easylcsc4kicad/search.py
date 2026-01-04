@@ -198,30 +198,6 @@ def search(
     )
 
 
-def get_by_uuid(uuid: str) -> Component | None:
-    """
-    Get component details by UUID.
-
-    Args:
-        uuid: Component UUID from EasyEDA
-
-    Returns:
-        Component if found, None otherwise
-    """
-    client = EasyEDAClient()
-
-    try:
-        data = client.get_component(uuid)
-        if data.get("success", False):
-            return _parse_component_from_easyeda(data)
-        else:
-            logger.warning(f"Component not found: {uuid}")
-            return None
-    except APIError as e:
-        logger.error(f"Failed to get component {uuid}: {e}")
-        return None
-
-
 def get_by_lcsc_id(lcsc_id: str) -> Component | None:
     """
     Get component details by LCSC part number.
